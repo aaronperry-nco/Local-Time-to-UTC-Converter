@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Time to UTC Time Converter</title>
+    <title>Local Time & CONUS Map</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
     <style>
         /* Base styling */
         body {
@@ -25,7 +28,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3rem; /* Space between local box and map */
+            gap: 3rem; /* Space between sections */
         }
 
         /* --- PRIMARY LOCAL BOX STYLES --- */
@@ -75,7 +78,7 @@
             white-space: nowrap;
         }
 
-        /* --- CONUS MAP STYLES --- */
+        /* --- CONUS STYLIZED MAP STYLES --- */
         .map-section {
             width: 100%;
             display: flex;
@@ -157,6 +160,16 @@
             color: #0f172a;
         }
 
+        /* --- LEAFLET INTERACTIVE MAP --- */
+        #leaflet-map {
+            width: 100%;
+            height: 500px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            z-index: 1; /* Keeps map elements from overlapping page layout */
+        }
+
         /* Responsive */
         @media (max-width: 900px) {
             .map-container {
@@ -188,14 +201,14 @@
                 <div id="local-val" class="value">Loading...</div>
             </div>
             <div class="data-group">
-                <div class="label">UTC Date & Time</div>
+                <div class="label">Z Date & Time</div>
                 <div id="z-val" class="value">Loading...</div>
             </div>
         </div>
 
         <div class="map-section">
             <h1>CONUS Timezones</h1>
-            <div class="subtitle"></div>
+            <div class="subtitle">Contiguous United States Stylized Map</div>
 
             <div class="map-container">
                 <div class="region pacific">
@@ -205,7 +218,7 @@
                         <div id="pacific-local" class="value">Loading...</div>
                     </div>
                     <div class="data-group">
-                        <div class="label">UTC Date & Time</div>
+                        <div class="label">Z Date & Time</div>
                         <div id="pacific-z" class="value">Loading...</div>
                     </div>
                 </div>
@@ -217,7 +230,7 @@
                         <div id="mountain-local" class="value">Loading...</div>
                     </div>
                     <div class="data-group">
-                        <div class="label">UTC Date & Time</div>
+                        <div class="label">Z Date & Time</div>
                         <div id="mountain-z" class="value">Loading...</div>
                     </div>
                 </div>
@@ -229,7 +242,7 @@
                         <div id="central-local" class="value">Loading...</div>
                     </div>
                     <div class="data-group">
-                        <div class="label">UTC Date & Time</div>
+                        <div class="label">Z Date & Time</div>
                         <div id="central-z" class="value">Loading...</div>
                     </div>
                 </div>
@@ -241,16 +254,25 @@
                         <div id="eastern-local" class="value">Loading...</div>
                     </div>
                     <div class="data-group">
-                        <div class="label">UTC Date & Time</div>
+                        <div class="label">Z Date & Time</div>
                         <div id="eastern-z" class="value">Loading...</div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <div class="map-section">
+            <h1>Interactive GeoJSON Map</h1>
+            <div class="subtitle">Displaying CONUS_TZ.geojson bounds</div>
+            <div id="leaflet-map"></div>
+        </div>
+
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
     <script>
+        // --- 1. TIMEZONE CLOCK LOGIC ---
         const conusZones = [
             { id: "pacific", tz: "America/Los_Angeles" },
             { id: "mountain", tz: "America/Denver" },
@@ -286,20 +308,20 @@
             const zYear = dateObj.getUTCFullYear();
             const zHours = pad(dateObj.getUTCHours());
             const zMinutes = pad(dateObj.getUTCMinutes());
-            return `${zMonth}/${zDay}/${zYear} ${zHours}${zMinutes}Z`;
+            return `${zMonth}/${zDay}/${zYear} ${zHours}:${zMinutes} Z`;
         }
 
         function updateTimeData() {
             const now = new Date();
             const zTimeStr = getFormattedZTime(now);
 
-            // --- 1. Update Primary Browser Box ---
+            // Primary Browser Box
             const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             document.getElementById('timezone-val').textContent = userTimeZone;
             document.getElementById('local-val').textContent = getFormattedLocalTime(now, userTimeZone);
             document.getElementById('z-val').textContent = zTimeStr;
 
-            // --- 2. Update CONUS Map Boxes ---
+            // CONUS Map Boxes
             conusZones.forEach(zone => {
                 document.getElementById(`${zone.id}-local`).textContent = getFormattedLocalTime(now, zone.tz);
                 document.getElementById(`${zone.id}-z`).textContent = zTimeStr;
@@ -308,7 +330,58 @@
 
         updateTimeData();
         setInterval(updateTimeData, 1000);
-    </script>
 
+
+        // --- 2. LEAFLET MAP LOGIC ---
+        // Initialize the map, centered roughly on the contiguous US
+        const map = L.map('leaflet-map').setView([39.8283, -98.5795], 4);
+
+        // Add a clean basemap (CartoDB Positron is great for data overlays)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+
+        // Fetch and load the GeoJSON file
+        fetch('CONUS_TZ.geojson')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("HTTP error " + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Add the GeoJSON to the map
+                const tzLayer = L.geoJSON(data, {
+                    style: function(feature) {
+                        // General styling for the polygons
+                        return {
+                            color: "#0056b3",
+                            weight: 2,
+                            fillColor: "#e0f2fe",
+                            fillOpacity: 0.5
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        // Dynamically build a popup based on the GeoJSON's properties
+                        if (feature.properties) {
+                            let popupContent = "<div style='font-family: sans-serif;'><strong>Timezone Data</strong><br/><br/>";
+                            for (const [key, value] of Object.entries(feature.properties)) {
+                                popupContent += `<strong>${key}:</strong> ${value}<br/>`;
+                            }
+                            popupContent += "</div>";
+                            layer.bindPopup(popupContent);
+                        }
+                    }
+                }).addTo(map);
+                
+                // Optional: Automatically zoom the map to fit the loaded GeoJSON data
+                map.fitBounds(tzLayer.getBounds());
+            })
+            .catch(error => {
+                console.error("Error loading CONUS_TZ.geojson. Ensure it is in the same directory and you are running a local web server.", error);
+            });
+    </script>
 </body>
 </html>
