@@ -3,128 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>local Time to UTC Time Converter</title>
+    <title>Local Timeto UTC TIme Converter</title>
     <style>
-        /* Base styles for a clean, fast-loading UI */
+        /* Base styling */
         body {
             font-family: system-ui, -apple-system, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
             background-color: #f4f4f9;
             color: #333;
+            margin: 0;
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
-        /* The Box */
+        .page-container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3rem; /* Space between local box and map */
+        }
+
+        /* --- PRIMARY LOCAL BOX STYLES --- */
         .time-box {
             background: #ffffff;
-            padding: 2rem;
+            padding: 1.5rem 2rem;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             text-align: center;
             width: 100%;
-            max-width: 380px;
+            max-width: 400px;
+            border-top: 4px solid #0056b3;
         }
 
-        h2 {
+        .time-box h2 {
             margin-top: 0;
             margin-bottom: 1.5rem;
             font-size: 1.4rem;
+            color: #2c3e50;
         }
 
-        /* Styling for the individual data fields */
+        /* Shared Data Group Styles */
         .data-group {
             margin-bottom: 1.2rem;
         }
 
+        .time-box .data-group:last-child {
+            margin-bottom: 0;
+        }
+
         .label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #666;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
         }
 
         .value {
-            font-size: 1.1rem;
-            font-weight: 500;
+            font-size: 1.05rem;
+            font-weight: 600;
             background: #f8f9fa;
             padding: 0.6rem;
             border-radius: 6px;
             border: 1px solid #e9ecef;
+            white-space: nowrap;
+        }
+
+        /* --- CONUS MAP STYLES --- */
+        .map-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            margin-top: 0;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .map-container {
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+            width: 100%;
+            height: 500px;
+            background-color: #e0f2fe; /* Ocean blue background */
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .region {
+            flex: 1;
+            min-width: 220px;
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            border: 2px solid rgba(255,255,255,0.5);
+            position: relative;
+        }
+
+        /* Map shaping */
+        .pacific { background: #bbf7d0; margin-top: 20px; margin-bottom: 80px; }
+        .mountain { background: #fef08a; margin-top: 60px; margin-bottom: 40px; }
+        .central { background: #fed7aa; margin-top: 80px; margin-bottom: 10px; }
+        .eastern { background: #fecaca; margin-top: 40px; margin-bottom: 50px; }
+
+        .region h2 {
+            margin-top: 0;
+            margin-bottom: 1.2rem;
+            font-size: 1.3rem;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .region .data-group {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 0.8rem;
+            border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+
+        .region .value {
+            background: transparent;
+            border: none;
+            padding: 0;
+            color: #0f172a;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .map-container {
+                height: auto;
+                flex-direction: column;
+                background-color: transparent;
+                box-shadow: none;
+                padding: 0;
+            }
+            .region {
+                margin: 0 !important;
+                min-height: 200px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="time-box">
-        <h2>Time Details</h2>
-
-        <div class="data-group">
-            <div class="label">Detected Timezone</div>
-            <div id="timezone-val" class="value">Loading...</div>
+    <div class="page-container">
+        
+        <div class="time-box">
+            <h2>Your Local Time</h2>
+            <div class="data-group">
+                <div class="label">Detected Timezone</div>
+                <div id="timezone-val" class="value">Loading...</div>
+            </div>
+            <div class="data-group">
+                <div class="label">Local Date & Time</div>
+                <div id="local-val" class="value">Loading...</div>
+            </div>
+            <div class="data-group">
+                <div class="label">UTC Date & Time</div>
+                <div id="z-val" class="value">Loading...</div>
+            </div>
         </div>
 
-        <div class="data-group">
-            <div class="label">Local Date & Time</div>
-            <div id="local-val" class="value">Loading...</div>
+        <div class="map-section">
+            <h1>CONUS Timezones</h1>
+            <div class="subtitle"></div>
+
+            <div class="map-container">
+                <div class="region pacific">
+                    <h2>Pacific</h2>
+                    <div class="data-group">
+                        <div class="label">Local Date & Time</div>
+                        <div id="pacific-local" class="value">Loading...</div>
+                    </div>
+                    <div class="data-group">
+                        <div class="label">UTC Date & Time</div>
+                        <div id="pacific-z" class="value">Loading...</div>
+                    </div>
+                </div>
+
+                <div class="region mountain">
+                    <h2>Mountain</h2>
+                    <div class="data-group">
+                        <div class="label">Local Date & Time</div>
+                        <div id="mountain-local" class="value">Loading...</div>
+                    </div>
+                    <div class="data-group">
+                        <div class="label">UTC Date & Time</div>
+                        <div id="mountain-z" class="value">Loading...</div>
+                    </div>
+                </div>
+
+                <div class="region central">
+                    <h2>Central</h2>
+                    <div class="data-group">
+                        <div class="label">Local Date & Time</div>
+                        <div id="central-local" class="value">Loading...</div>
+                    </div>
+                    <div class="data-group">
+                        <div class="label">UTC Date & Time</div>
+                        <div id="central-z" class="value">Loading...</div>
+                    </div>
+                </div>
+
+                <div class="region eastern">
+                    <h2>Eastern</h2>
+                    <div class="data-group">
+                        <div class="label">Local Date & Time</div>
+                        <div id="eastern-local" class="value">Loading...</div>
+                    </div>
+                    <div class="data-group">
+                        <div class="label">UTC Date & Time</div>
+                        <div id="eastern-z" class="value">Loading...</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="data-group">
-            <div class="label">UTC Date & Time</div>
-            <div id="z-val" class="value">Loading...</div>
-        </div>
     </div>
 
     <script>
-        // Helper function to ensure single digits get a leading zero
+        const conusZones = [
+            { id: "pacific", tz: "America/Los_Angeles" },
+            { id: "mountain", tz: "America/Denver" },
+            { id: "central", tz: "America/Chicago" },
+            { id: "eastern", tz: "America/New_York" }
+        ];
+
         function pad(number) {
             return number.toString().padStart(2, '0');
         }
 
-        function updateTimeData() {
-            const now = new Date();
-
-            // 1. Determine local timezone (IANA string, e.g., America/New_York)
-            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            document.getElementById('timezone-val').textContent = timeZone;
-
-            // 2. Format local time (MM/DD/YYYY HH:MM AM/PM TZ)
-            const localMonth = pad(now.getMonth() + 1);
-            const localDay = pad(now.getDate());
-            const localYear = now.getFullYear();
-            
-            let localHours = now.getHours();
-            const ampm = localHours >= 12 ? 'PM' : 'AM';
-            localHours = localHours % 12;
-            localHours = localHours ? localHours : 12; // Convert '0' to '12'
-            const localMinutes = pad(now.getMinutes());
-
-            // Extract the short timezone abbreviation (e.g., EST, EDT, PT)
-            const tzAbbr = new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' })
-                .formatToParts(now)
-                .find(part => part.type === 'timeZoneName').value;
-
-            const localFormatted = `${localMonth}/${localDay}/${localYear} ${pad(localHours)}:${localMinutes} ${ampm} ${tzAbbr}`;
-            document.getElementById('local-val').textContent = localFormatted;
-
-            // 3. Format Z time (MM/DD/YYYY HH:MM Z) in 24-hour format
-            const zMonth = pad(now.getUTCMonth() + 1);
-            const zDay = pad(now.getUTCDate());
-            const zYear = now.getUTCFullYear();
-            const zHours = pad(now.getUTCHours());
-            const zMinutes = pad(now.getUTCMinutes());
-
-            const zFormatted = `${zMonth}/${zDay}/${zYear} ${zHours}${zMinutes}Z`;
-            document.getElementById('z-val').textContent = zFormatted;
+        function getFormattedLocalTime(dateObj, timeZoneStr) {
+            const options = {
+                timeZone: timeZoneStr,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+                timeZoneName: 'short'
+            };
+            const formatter = new Intl.DateTimeFormat('en-US', options);
+            const parts = formatter.formatToParts(dateObj);
+            const p = {};
+            parts.forEach(part => p[part.type] = part.value);
+            return `${p.month}/${p.day}/${p.year} ${p.hour}:${p.minute} ${p.dayPeriod} ${p.timeZoneName}`;
         }
 
-        // Run immediately on page load
-        updateTimeData();
+        function getFormattedZTime(dateObj) {
+            const zMonth = pad(dateObj.getUTCMonth() + 1);
+            const zDay = pad(dateObj.getUTCDate());
+            const zYear = dateObj.getUTCFullYear();
+            const zHours = pad(dateObj.getUTCHours());
+            const zMinutes = pad(dateObj.getUTCMinutes());
+            return `${zMonth}/${zDay}/${zYear} ${zHours}${zMinutes}Z`;
+        }
 
-        // Update every 1000ms (1 second) to ensure the minute ticks over precisely
+        function updateTimeData() {
+            const now = new Date();
+            const zTimeStr = getFormattedZTime(now);
+
+            // --- 1. Update Primary Browser Box ---
+            const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            document.getElementById('timezone-val').textContent = userTimeZone;
+            document.getElementById('local-val').textContent = getFormattedLocalTime(now, userTimeZone);
+            document.getElementById('z-val').textContent = zTimeStr;
+
+            // --- 2. Update CONUS Map Boxes ---
+            conusZones.forEach(zone => {
+                document.getElementById(`${zone.id}-local`).textContent = getFormattedLocalTime(now, zone.tz);
+                document.getElementById(`${zone.id}-z`).textContent = zTimeStr;
+            });
+        }
+
+        updateTimeData();
         setInterval(updateTimeData, 1000);
     </script>
 
