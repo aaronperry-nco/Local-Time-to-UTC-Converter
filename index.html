@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Time & CONUS Map</title>
+    <title>Local Time vs UTC Time Map</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
@@ -28,7 +28,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3rem; /* Space between sections */
+            gap: 2rem;
         }
 
         /* --- PRIMARY LOCAL BOX STYLES --- */
@@ -50,7 +50,6 @@
             color: #2c3e50;
         }
 
-        /* Shared Data Group Styles */
         .data-group {
             margin-bottom: 1.2rem;
         }
@@ -60,7 +59,7 @@
         }
 
         .label {
-            font-size: 0.75rem;
+            font-size: 0.9rem;
             color: #666;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -76,9 +75,10 @@
             border-radius: 6px;
             border: 1px solid #e9ecef;
             white-space: nowrap;
+            line-height: 1.4; /* Gives comfortable spacing to the stacked lines */
         }
 
-        /* --- CONUS STYLIZED MAP STYLES --- */
+        /* --- LEAFLET INTERACTIVE MAP --- */
         .map-section {
             width: 100%;
             display: flex;
@@ -101,89 +101,67 @@
             text-align: center;
         }
 
-        .map-container {
-            display: flex;
-            flex-direction: row;
-            gap: 12px;
-            width: 100%;
-            height: 500px;
-            background-color: #e0f2fe; /* Ocean blue background */
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.1);
-            overflow-x: auto;
-        }
-
-        .region {
-            flex: 1;
-            min-width: 220px;
-            border-radius: 16px;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-            border: 2px solid rgba(255,255,255,0.5);
-            position: relative;
-        }
-
-        /* Map shaping */
-        .pacific { background: #bbf7d0; margin-top: 20px; margin-bottom: 80px; }
-        .mountain { background: #fef08a; margin-top: 60px; margin-bottom: 40px; }
-        .central { background: #fed7aa; margin-top: 80px; margin-bottom: 10px; }
-        .eastern { background: #fecaca; margin-top: 40px; margin-bottom: 50px; }
-
-        .region h2 {
-            margin-top: 0;
-            margin-bottom: 1.2rem;
-            font-size: 1.3rem;
-            color: #1e293b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .region .data-group {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.7);
-            padding: 0.8rem;
-            border-radius: 8px;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-            box-sizing: border-box;
-        }
-
-        .region .value {
-            background: transparent;
-            border: none;
-            padding: 0;
-            color: #0f172a;
-        }
-
-        /* --- LEAFLET INTERACTIVE MAP --- */
         #leaflet-map {
             width: 100%;
-            height: 500px;
+            height: 600px;
             border-radius: 20px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            margin-bottom: 2rem;
-            z-index: 1; /* Keeps map elements from overlapping page layout */
+            z-index: 1; 
         }
 
-        /* Responsive */
-        @media (max-width: 900px) {
-            .map-container {
-                height: auto;
-                flex-direction: column;
-                background-color: transparent;
-                box-shadow: none;
-                padding: 0;
-            }
-            .region {
-                margin: 0 !important;
-                min-height: 200px;
-            }
+        /* --- NATIVE MAP TEXT (NO BOXES) --- */
+        .map-label-wrapper {
+            overflow: visible !important;
         }
+
+        .custom-map-text {
+            text-align: center;
+            font-family: system-ui, -apple-system, sans-serif;
+            white-space: nowrap;
+            pointer-events: none; /* Let clicks pass through to the map */
+            
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: max-content;
+            
+            /* Text shadow creates a glowing white outline so it's readable over map borders */
+            text-shadow: 
+                -1px -1px 3px rgba(255,255,255,0.9),  
+                 1px -1px 3px rgba(255,255,255,0.9),
+                -1px  1px 3px rgba(255,255,255,0.9),
+                 1px  1px 3px rgba(255,255,255,0.9),
+                 0px  0px 5px rgba(255,255,255,1);
+        }
+
+        .map-label-title {
+            color: #000000;
+            font-size: 1.3rem; 
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 4px;
+        }
+
+        .map-data-group {
+            margin-bottom: 6px;
+        }
+
+        .map-label-text {
+            font-size: 1.0rem;
+            color: #FF2700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 1px;
+        }
+
+        .map-label-value {
+            color: #0f172a;
+            font-size: 0.9rem;
+            font-weight: 700;
+            line-height: 1.2; /* Tighter line-height to keep the stacked date and time grouped nicely on the map */
+        }
+
     </style>
 </head>
 <body>
@@ -197,73 +175,18 @@
                 <div id="timezone-val" class="value">Loading...</div>
             </div>
             <div class="data-group">
-                <div class="label">Local Date & Time</div>
+                <div class="label">Local Time</div>
                 <div id="local-val" class="value">Loading...</div>
             </div>
             <div class="data-group">
-                <div class="label">Z Date & Time</div>
+                <div class="label">UTC Time</div>
                 <div id="z-val" class="value">Loading...</div>
             </div>
         </div>
 
         <div class="map-section">
             <h1>CONUS Timezones</h1>
-            <div class="subtitle">Contiguous United States Stylized Map</div>
-
-            <div class="map-container">
-                <div class="region pacific">
-                    <h2>Pacific</h2>
-                    <div class="data-group">
-                        <div class="label">Local Date & Time</div>
-                        <div id="pacific-local" class="value">Loading...</div>
-                    </div>
-                    <div class="data-group">
-                        <div class="label">Z Date & Time</div>
-                        <div id="pacific-z" class="value">Loading...</div>
-                    </div>
-                </div>
-
-                <div class="region mountain">
-                    <h2>Mountain</h2>
-                    <div class="data-group">
-                        <div class="label">Local Date & Time</div>
-                        <div id="mountain-local" class="value">Loading...</div>
-                    </div>
-                    <div class="data-group">
-                        <div class="label">Z Date & Time</div>
-                        <div id="mountain-z" class="value">Loading...</div>
-                    </div>
-                </div>
-
-                <div class="region central">
-                    <h2>Central</h2>
-                    <div class="data-group">
-                        <div class="label">Local Date & Time</div>
-                        <div id="central-local" class="value">Loading...</div>
-                    </div>
-                    <div class="data-group">
-                        <div class="label">Z Date & Time</div>
-                        <div id="central-z" class="value">Loading...</div>
-                    </div>
-                </div>
-
-                <div class="region eastern">
-                    <h2>Eastern</h2>
-                    <div class="data-group">
-                        <div class="label">Local Date & Time</div>
-                        <div id="eastern-local" class="value">Loading...</div>
-                    </div>
-                    <div class="data-group">
-                        <div class="label">Z Date & Time</div>
-                        <div id="eastern-z" class="value">Loading...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="map-section">
-            <h1>Interactive GeoJSON Map</h1>
-            <div class="subtitle">Displaying CONUS_TZ.geojson bounds</div>
+            <div class="subtitle"></div>
             <div id="leaflet-map"></div>
         </div>
 
@@ -272,116 +195,121 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
-        // --- 1. TIMEZONE CLOCK LOGIC ---
         const conusZones = [
-            { id: "pacific", tz: "America/Los_Angeles" },
-            { id: "mountain", tz: "America/Denver" },
-            { id: "central", tz: "America/Chicago" },
-            { id: "eastern", tz: "America/New_York" }
+            { id: "pacific", tz: "America/Los_Angeles", name: "Pacific" },
+            { id: "mountain", tz: "America/Denver", name: "Mountain" },
+            { id: "central", tz: "America/Chicago", name: "Central" },
+            { id: "eastern", tz: "America/New_York", name: "Eastern" }
         ];
 
-        function pad(number) {
-            return number.toString().padStart(2, '0');
-        }
+        // --- 1. LEAFLET MAP INIT & GEOJSON ---
+        const map = L.map('leaflet-map', { zoomSnap: 0.5 });
+
+        // Lock to CONUS bounds
+        map.fitBounds([
+            [24.396308, -125.000000],
+            [49.384358, -66.934570]  
+        ]);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
+
+        // Fetch just the boundaries to draw the shapes on the map
+        fetch('CONUS_TZ.geojson')
+            .then(response => {
+                if (!response.ok) throw new Error("HTTP error " + response.status);
+                return response.json();
+            })
+            .then(data => {
+                L.geoJSON(data, {
+                    style: { color: "#0056b3", weight: 2, fillColor: "#e0f2fe", fillOpacity: 0.4 },
+                    interactive: false // Makes the blue shapes completely click-through
+                }).addTo(map);
+            })
+            .catch(error => console.error("Error loading CONUS_TZ.geojson.", error));
+
+
+        // --- 2. NATIVE MAP TEXT PLACEMENT ---
+        // Place raw text exactly in the middle of each landmass
+        const mapLabelZones = [
+            { id: 'pacific', name: 'Pacific', lat: 39.5, lng: -119.5 },
+            { id: 'mountain', name: 'Mountain', lat: 40.0, lng: -108.5 },
+            { id: 'central', name: 'Central', lat: 39.0, lng: -92.5 },
+            { id: 'eastern', name: 'Eastern', lat: 40.0, lng: -79.0 }
+        ];
+
+        mapLabelZones.forEach(zone => {
+            const icon = L.divIcon({
+                className: 'map-label-wrapper',
+                html: `
+                    <div class="custom-map-text">
+                        <div class="map-label-title">${zone.name}</div>
+                        
+                        <div class="map-data-group">
+                            <div class="map-label-text">Local Time</div>
+                            <div class="map-label-value" id="map-${zone.id}-local">Loading...</div>
+                        </div>
+
+                        <div class="map-data-group">
+                            <div class="map-label-text">UTC Time</div>
+                            <div class="map-label-value" id="map-${zone.id}-z">Loading...</div>
+                        </div>
+                    </div>
+                `,
+                iconSize: [0, 0],   
+                iconAnchor: [0, 0]  
+            });
+            L.marker([zone.lat, zone.lng], { icon: icon, interactive: false }).addTo(map);
+        });
+
+
+        // --- 3. TIMEZONE CLOCK LOGIC ---
+        function pad(number) { return number.toString().padStart(2, '0'); }
 
         function getFormattedLocalTime(dateObj, timeZoneStr) {
             const options = {
-                timeZone: timeZoneStr,
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true,
-                timeZoneName: 'short'
+                timeZone: timeZoneStr, year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', hour12: true, timeZoneName: 'short'
             };
-            const formatter = new Intl.DateTimeFormat('en-US', options);
-            const parts = formatter.formatToParts(dateObj);
+            const parts = new Intl.DateTimeFormat('en-US', options).formatToParts(dateObj);
             const p = {};
             parts.forEach(part => p[part.type] = part.value);
-            return `${p.month}/${p.day}/${p.year} ${p.hour}:${p.minute} ${p.dayPeriod} ${p.timeZoneName}`;
+            // Insert <br> to stack the date and time
+            return `${p.hour}:${p.minute} ${p.dayPeriod} ${p.timeZoneName}`;
         }
 
         function getFormattedZTime(dateObj) {
-            const zMonth = pad(dateObj.getUTCMonth() + 1);
-            const zDay = pad(dateObj.getUTCDate());
-            const zYear = dateObj.getUTCFullYear();
-            const zHours = pad(dateObj.getUTCHours());
-            const zMinutes = pad(dateObj.getUTCMinutes());
-            return `${zMonth}/${zDay}/${zYear} ${zHours}:${zMinutes} Z`;
+            // Insert <br> to stack the date and time
+            return `${pad(dateObj.getUTCHours())}${pad(dateObj.getUTCMinutes())}Z`;
         }
 
         function updateTimeData() {
             const now = new Date();
             const zTimeStr = getFormattedZTime(now);
 
-            // Primary Browser Box
+            // Primary Browser Box (Changed to .innerHTML to render the <br> tag properly)
             const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             document.getElementById('timezone-val').textContent = userTimeZone;
-            document.getElementById('local-val').textContent = getFormattedLocalTime(now, userTimeZone);
-            document.getElementById('z-val').textContent = zTimeStr;
+            document.getElementById('local-val').innerHTML = getFormattedLocalTime(now, userTimeZone);
+            document.getElementById('z-val').innerHTML = zTimeStr;
 
-            // CONUS Map Boxes
             conusZones.forEach(zone => {
-                document.getElementById(`${zone.id}-local`).textContent = getFormattedLocalTime(now, zone.tz);
-                document.getElementById(`${zone.id}-z`).textContent = zTimeStr;
+                const localTimeStr = getFormattedLocalTime(now, zone.tz);
+                
+                // Update map overlay text (Changed to .innerHTML to render the <br> tag properly)
+                const mapLocalEl = document.getElementById(`map-${zone.id}-local`);
+                const mapZEl = document.getElementById(`map-${zone.id}-z`);
+                
+                if (mapLocalEl) mapLocalEl.innerHTML = localTimeStr;
+                if (mapZEl) mapZEl.innerHTML = zTimeStr;
             });
         }
 
         updateTimeData();
         setInterval(updateTimeData, 1000);
-
-
-        // --- 2. LEAFLET MAP LOGIC ---
-        // Initialize the map, centered roughly on the contiguous US
-        const map = L.map('leaflet-map').setView([39.8283, -98.5795], 4);
-
-        // Add a clean basemap (CartoDB Positron is great for data overlays)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(map);
-
-        // Fetch and load the GeoJSON file
-        fetch('CONUS_TZ.geojson')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("HTTP error " + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Add the GeoJSON to the map
-                const tzLayer = L.geoJSON(data, {
-                    style: function(feature) {
-                        // General styling for the polygons
-                        return {
-                            color: "#0056b3",
-                            weight: 2,
-                            fillColor: "#e0f2fe",
-                            fillOpacity: 0.5
-                        };
-                    },
-                    onEachFeature: function (feature, layer) {
-                        // Dynamically build a popup based on the GeoJSON's properties
-                        if (feature.properties) {
-                            let popupContent = "<div style='font-family: sans-serif;'><strong>Timezone Data</strong><br/><br/>";
-                            for (const [key, value] of Object.entries(feature.properties)) {
-                                popupContent += `<strong>${key}:</strong> ${value}<br/>`;
-                            }
-                            popupContent += "</div>";
-                            layer.bindPopup(popupContent);
-                        }
-                    }
-                }).addTo(map);
-                
-                // Optional: Automatically zoom the map to fit the loaded GeoJSON data
-                map.fitBounds(tzLayer.getBounds());
-            })
-            .catch(error => {
-                console.error("Error loading CONUS_TZ.geojson. Ensure it is in the same directory and you are running a local web server.", error);
-            });
     </script>
 </body>
 </html>
