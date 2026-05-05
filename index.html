@@ -283,7 +283,7 @@
 
         function getFormattedZTime(dateObj) {
             // Insert <br> to stack the date and time
-            return `${pad(dateObj.getUTCHours())}${pad(dateObj.getUTCMinutes())}Z`;
+            return `${pad(dateObj.getUTCHours())}${pad(dateObj.getUTCMinutes())} UTC`;
         }
 
         function updateTimeData() {
