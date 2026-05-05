@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timezone & UTC Converter</title>
+    <title>local Time to UTC Time Converter</title>
     <style>
         /* Base styles for a clean, fast-loading UI */
         body {
@@ -25,7 +25,7 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             text-align: center;
             width: 100%;
-            max-width: 350px;
+            max-width: 380px;
         }
 
         h2 {
@@ -74,30 +74,57 @@
 
         <div class="data-group">
             <div class="label">UTC Date & Time</div>
-            <div id="utc-val" class="value">Loading...</div>
+            <div id="z-val" class="value">Loading...</div>
         </div>
     </div>
 
     <script>
+        // Helper function to ensure single digits get a leading zero
+        function pad(number) {
+            return number.toString().padStart(2, '0');
+        }
+
         function updateTimeData() {
-            // Get the current date and time
             const now = new Date();
 
-            // 1. Determine local timezone using the Internationalization API
+            // 1. Determine local timezone (IANA string, e.g., America/New_York)
             const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             document.getElementById('timezone-val').textContent = timeZone;
 
-            // 2. Format and display local time
-            document.getElementById('local-val').textContent = now.toLocaleString();
+            // 2. Format local time (MM/DD/YYYY HH:MM AM/PM TZ)
+            const localMonth = pad(now.getMonth() + 1);
+            const localDay = pad(now.getDate());
+            const localYear = now.getFullYear();
+            
+            let localHours = now.getHours();
+            const ampm = localHours >= 12 ? 'PM' : 'AM';
+            localHours = localHours % 12;
+            localHours = localHours ? localHours : 12; // Convert '0' to '12'
+            const localMinutes = pad(now.getMinutes());
 
-            // 3. Convert and display UTC time
-            document.getElementById('utc-val').textContent = now.toUTCString();
+            // Extract the short timezone abbreviation (e.g., EST, EDT, PT)
+            const tzAbbr = new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' })
+                .formatToParts(now)
+                .find(part => part.type === 'timeZoneName').value;
+
+            const localFormatted = `${localMonth}/${localDay}/${localYear} ${pad(localHours)}:${localMinutes} ${ampm} ${tzAbbr}`;
+            document.getElementById('local-val').textContent = localFormatted;
+
+            // 3. Format Z time (MM/DD/YYYY HH:MM Z) in 24-hour format
+            const zMonth = pad(now.getUTCMonth() + 1);
+            const zDay = pad(now.getUTCDate());
+            const zYear = now.getUTCFullYear();
+            const zHours = pad(now.getUTCHours());
+            const zMinutes = pad(now.getUTCMinutes());
+
+            const zFormatted = `${zMonth}/${zDay}/${zYear} ${zHours}${zMinutes}Z`;
+            document.getElementById('z-val').textContent = zFormatted;
         }
 
         // Run immediately on page load
         updateTimeData();
 
-        // Update the times every 1000 milliseconds (1 second) to keep it live
+        // Update every 1000ms (1 second) to ensure the minute ticks over precisely
         setInterval(updateTimeData, 1000);
     </script>
 
