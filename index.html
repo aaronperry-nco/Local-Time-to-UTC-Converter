@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timezone & UTC Converter</title>
+    <style>
+        /* Base styles for a clean, fast-loading UI */
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        /* The Box */
+        .time-box {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.4rem;
+        }
+
+        /* Styling for the individual data fields */
+        .data-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.3rem;
+        }
+
+        .value {
+            font-size: 1.1rem;
+            font-weight: 500;
+            background: #f8f9fa;
+            padding: 0.6rem;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="time-box">
+        <h2>Time Details</h2>
+
+        <div class="data-group">
+            <div class="label">Detected Timezone</div>
+            <div id="timezone-val" class="value">Loading...</div>
+        </div>
+
+        <div class="data-group">
+            <div class="label">Local Date & Time</div>
+            <div id="local-val" class="value">Loading...</div>
+        </div>
+
+        <div class="data-group">
+            <div class="label">UTC Date & Time</div>
+            <div id="utc-val" class="value">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        function updateTimeData() {
+            // Get the current date and time
+            const now = new Date();
+
+            // 1. Determine local timezone using the Internationalization API
+            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            document.getElementById('timezone-val').textContent = timeZone;
+
+            // 2. Format and display local time
+            document.getElementById('local-val').textContent = now.toLocaleString();
+
+            // 3. Convert and display UTC time
+            document.getElementById('utc-val').textContent = now.toUTCString();
+        }
+
+        // Run immediately on page load
+        updateTimeData();
+
+        // Update the times every 1000 milliseconds (1 second) to keep it live
+        setInterval(updateTimeData, 1000);
+    </script>
+
+</body>
+</html>
